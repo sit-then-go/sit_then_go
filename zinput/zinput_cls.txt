@@ -1,0 +1,176 @@
+*&---------------------------------------------------------------------*
+*& Include          ZINPUT_CLS
+*&---------------------------------------------------------------------*
+CLASS LCL_EVENT_RECEIVER DEFINITION DEFERRED.
+
+DATA : GO_ALV TYPE REF TO CL_GUI_ALV_GRID.
+DATA : GO_EVENT TYPE REF TO LCL_EVENT_RECEIVER.
+
+
+
+*&---------------------------------------------------------------------*
+* CLASS LCL_EVENT_RECEIVER DEFINITION
+*&---------------------------------------------------------------------*
+CLASS LCL_EVENT_RECEIVER DEFINITION.
+
+  PUBLIC SECTION.
+
+    METHODS HANDLE_DATA_CHANGED FOR EVENT DATA_CHANGED OF CL_GUI_ALV_GRID
+      IMPORTING
+        ER_DATA_CHANGED
+        E_ONF4
+        E_ONF4_BEFORE
+        E_ONF4_AFTER
+        E_UCOMM
+        SENDER.
+
+
+*ER_DATA_CHANGED  Type Ref To CL_ALV_CHANGED_DATA_PROTOCOL
+*E_ONF4 Type  CHAR01
+*E_ONF4_BEFORE  Type  CHAR01
+*E_ONF4_AFTER Type  CHAR01
+*E_UCOMM  Type  SY-UCOMM
+
+ENDCLASS.
+
+*&---------------------------------------------------------------------*
+* CLASS LCL_EVENT_RECEIVER IMPLEMENTATION
+*&---------------------------------------------------------------------*
+CLASS LCL_EVENT_RECEIVER IMPLEMENTATION.
+
+  METHOD HANDLE_DATA_CHANGED.
+
+*   1. ##
+    IF ER_DATA_CHANGED->MT_MOD_CELLS IS NOT INITIAL.
+      PERFORM DATA_CHANGED_MOD USING ER_DATA_CHANGED.
+    ENDIF.
+
+
+*   2. ##
+    IF ER_DATA_CHANGED->MT_INSERTED_ROWS IS NOT INITIAL.
+      PERFORM DATA_CHANGED_INS USING ER_DATA_CHANGED.
+    ENDIF.
+
+
+*   3. ##
+    IF ER_DATA_CHANGED->MT_DELETED_ROWS IS NOT INITIAL.
+      PERFORM DATA_CHANGED_DEL USING ER_DATA_CHANGED.
+    ENDIF.
+
+
+  ENDMETHOD.
+
+ENDCLASS.
+*&---------------------------------------------------------------------*
+*& Form DATA_CHANGED_MOD
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> ER_DATA_CHANGED
+*&---------------------------------------------------------------------*
+FORM DATA_CHANGED_MOD  USING    PO_DATA_CHANGED TYPE REF TO CL_ALV_CHANGED_DATA_PROTOCOL.
+
+
+  DATA(LT_ROWS) = PO_DATA_CHANGED->MT_MOD_CELLS.
+
+  LOOP AT LT_ROWS INTO DATA(LS_ROWS).
+
+    CASE LS_ROWS-FIELDNAME.
+      WHEN 'MATNR'.
+
+        CALL METHOD PO_DATA_CHANGED->MODIFY_CELL
+          EXPORTING
+            I_ROW_ID    = LS_ROWS-ROW_ID :
+            I_FIELDNAME = LS_ROWS-FIELDNAME
+            I_VALUE     = LS_ROWS-VALUE,
+            I_FIELDNAME = 'MAKTX'
+            I_VALUE     = 'MAKTX'.
+
+        MESSAGE LS_ROWS-VALUE TYPE 'S'.
+
+        IF LS_ROWS-VALUE NE '1' AND LS_ROWS-VALUE IS NOT INITIAL.
+          CALL METHOD PO_DATA_CHANGED->ADD_PROTOCOL_ENTRY
+            EXPORTING
+              I_MSGID     = 'ZMTEMP'
+              I_MSGTY     = 'E'
+              I_MSGNO     = 001
+              I_FIELDNAME = LS_ROWS-FIELDNAME
+              I_ROW_ID    = LS_ROWS-ROW_ID.
+        ENDIF.
+
+
+    ENDCASE.
+
+
+
+  ENDLOOP.
+
+
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form DATA_CHANGED_INS
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> ER_DATA_CHANGED
+*&---------------------------------------------------------------------*
+FORM DATA_CHANGED_INS  USING    PO_DATA_CHANGED TYPE REF TO CL_ALV_CHANGED_DATA_PROTOCOL.
+
+  DATA : LV_CHAR(100).
+
+  LOOP AT PO_DATA_CHANGED->MT_INSERTED_ROWS INTO DATA(LS_ROWS).
+
+    LV_CHAR = LS_ROWS-ROW_ID.
+
+    MESSAGE LV_CHAR TYPE 'S'.
+
+    CALL METHOD PO_DATA_CHANGED->MODIFY_CELL
+      EXPORTING
+        I_ROW_ID    = LS_ROWS-ROW_ID
+        I_FIELDNAME = 'MEINS'
+        I_VALUE     = 'EA'.
+
+
+  ENDLOOP.
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form DATA_CHANGED_DEL
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> ER_DATA_CHANGED
+*&---------------------------------------------------------------------*
+FORM DATA_CHANGED_DEL  USING    PO_DATA_CHANGED TYPE REF TO CL_ALV_CHANGED_DATA_PROTOCOL.
+
+  DATA : LV_CHAR(100).
+
+  DATA : LS_ZMARA TYPE ZMARA.
+
+  CLEAR PO_DATA_CHANGED->MT_DELETED_ROWS.
+
+*  LOOP AT PO_DATA_CHANGED->MT_DELETED_ROWS INTO DATA(LS_ROWS).
+*
+*    LV_CHAR = LS_ROWS-ROW_ID.
+*
+*    MESSAGE LV_CHAR TYPE 'S'.
+*
+*    CLEAR GT_DATA.
+*    READ TABLE GT_DATA INDEX LS_ROWS-ROW_ID.
+*
+*    LS_ZMARA-MATNR = GT_DATA-MATNR.
+*
+*  ENDLOOP.
+*
+*  DELETE ZMARA FROM LS_ZMARA.
+*
+*  COMMIT WORK.
+
+
+ENDFORM.
+
+----------------------------------------------------------------------------------
+Extracted by Mass Download version 1.5.5 - E.G.Mellodew. 1998-2023. Sap Release 752

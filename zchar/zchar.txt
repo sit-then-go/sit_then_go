@@ -1,0 +1,73 @@
+*&---------------------------------------------------------------------*
+*& Report ZCHAR
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZCHAR.
+
+* char, numc, string
+
+DATA : LV_CHAR(10),
+       LV_NUMC(10) TYPE N,
+       LV_STRING   TYPE STRING.
+
+DATA : LV_CHAR2(10) VALUE 'abcde'.
+
+WRITE : / LV_CHAR2.
+
+DATA : LV_CHAR3(20).
+DATA : LV_CHAR4(20).
+
+LV_CHAR3 = 'hello abap World'.
+
+LV_CHAR4 = LV_CHAR3+6.
+
+*substring( lv_char3, 7, 4 )
+
+WRITE : / LV_CHAR4.
+
+
+data: lv_char12(10).
+LV_CHAR12 = '#######'.
+*
+*WRITE : / LV_CHAR5.
+DATA : LV_CHAR5(20),
+       LV_CHAR6(20),
+       LV_CHAR7(20).
+
+DATA : BEGIN OF LT_CHAR OCCURS 0,
+         CHAR(20),
+       END OF LT_CHAR.
+
+DATA : LT_CHAR2 TYPE TABLE OF CHAR20 WITH HEADER LINE .
+
+data : lv_string2 type string.
+
+
+SPLIT LV_CHAR3 AT SPACE INTO LV_CHAR5 LV_CHAR6 LV_CHAR7.
+*SPLIT LV_CHAR3 AT SPACE INTO TABLE LT_CHAR2.
+*
+*
+*WRITE : / LV_CHAR5, LV_CHAR6, LV_CHAR7.
+*
+*loop at LT_CHAR2.
+*
+*  WRITE : / LT_CHAR2.
+*ENDLOOP.
+
+CONCATENATE LV_CHAR5
+            LV_CHAR6
+            LV_CHAR7
+       into lv_string2. "SEPARATED BY
+
+WRITE : / lv_string2.
+
+CONCATENATE LV_CHAR5
+            LV_CHAR6
+            LV_CHAR7
+       into lv_string2 SEPARATED BY '@@@@'.
+
+WRITE : / lv_string2.
+
+----------------------------------------------------------------------------------
+Extracted by Mass Download version 1.5.5 - E.G.Mellodew. 1998-2023. Sap Release 752

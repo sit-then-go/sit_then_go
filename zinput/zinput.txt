@@ -1,0 +1,44 @@
+*&---------------------------------------------------------------------*
+*& Report ZINPUT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZINPUT.
+
+INCLUDE ZINPUT_TOP. "### ##, ##, ###
+INCLUDE ZINPUT_SCR. "1000# ###, ##### ##
+INCLUDE ZINPUT_CLS. "### ##, ALV##
+INCLUDE ZINPUT_I01. "PAI
+INCLUDE ZINPUT_O01 ."PBO
+INCLUDE ZINPUT_F01. "Sub routine
+
+
+
+START-OF-SELECTION.
+
+  PERFORM get_data.
+
+  CALL SCREEN 0100.
+
+*GUI Texts
+*----------------------------------------------------------
+* 0100 --> Material Input
+
+*Text elements
+*----------------------------------------------------------
+* T01 Conditions
+
+
+*Selection texts
+*----------------------------------------------------------
+* S_MATNR D       .
+
+
+*Messages
+*----------------------------------------------------------
+*
+* Message class: Hard coded
+*   #### ####.
+
+----------------------------------------------------------------------------------
+Extracted by Mass Download version 1.5.5 - E.G.Mellodew. 1998-2023. Sap Release 752

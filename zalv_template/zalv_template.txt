@@ -1,0 +1,151 @@
+*&---------------------------------------------------------------------*
+*& Report ZALV_TEMPLATE
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZALV_TEMPLATE.
+
+DATA : GV_OK_CODE TYPE SY-UCOMM.
+
+DATA : GO_CONTAINER TYPE REF TO CL_GUI_DOCKING_CONTAINER.
+DATA : GO_ALV TYPE REF TO CL_GUI_ALV_GRID.
+
+DATA : BEGIN OF GT_DATA OCCURS 0,
+         BNAME     TYPE V_USERNAME-BNAME,
+         NAME_LAST TYPE V_USERNAME-NAME_LAST,
+       END OF GT_DATA.
+
+
+
+START-OF-SELECTION.
+
+
+  SELECT BNAME, NAME_LAST
+    FROM V_USERNAME
+    ORDER BY BNAME
+    INTO CORRESPONDING FIELDS OF TABLE @GT_DATA.
+
+
+  CALL SCREEN 0100.
+
+
+
+
+
+*&---------------------------------------------------------------------*
+*& Module STATUS_0100 OUTPUT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+MODULE STATUS_0100 OUTPUT.
+  SET PF-STATUS '0100'.
+  SET TITLEBAR '0100'.
+ENDMODULE.
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_0100  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE USER_COMMAND_0100 INPUT.
+
+  CASE GV_OK_CODE.
+    WHEN 'BACK' OR 'EXIT' OR 'CANC'.
+      LEAVE TO SCREEN 0.
+  ENDCASE.
+
+ENDMODULE.
+*&---------------------------------------------------------------------*
+*& Module ALV_0100 OUTPUT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+MODULE ALV_0100 OUTPUT.
+
+  IF GO_ALV IS NOT BOUND.
+
+    CREATE OBJECT GO_CONTAINER
+      EXPORTING
+        REPID                       = SY-REPID
+        DYNNR                       = SY-DYNNR
+        SIDE                        = CL_GUI_DOCKING_CONTAINER=>DOCK_AT_LEFT
+        EXTENSION                   = 5000
+      EXCEPTIONS
+        CNTL_ERROR                  = 1
+        CNTL_SYSTEM_ERROR           = 2
+        CREATE_ERROR                = 3
+        LIFETIME_ERROR              = 4
+        LIFETIME_DYNPRO_DYNPRO_LINK = 5
+        OTHERS                      = 6.
+
+    IF SY-SUBRC <> 0.
+      MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+                 WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+      STOP.
+    ENDIF.
+
+    CREATE OBJECT GO_ALV
+      EXPORTING
+        I_PARENT          = GO_CONTAINER
+      EXCEPTIONS
+        ERROR_CNTL_CREATE = 1
+        ERROR_CNTL_INIT   = 2
+        ERROR_CNTL_LINK   = 3
+        ERROR_DP_CREATE   = 4
+        OTHERS            = 5.
+    IF SY-SUBRC <> 0.
+      MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+                 WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+      STOP.
+    ENDIF.
+
+    DATA : LS_LAYOUT TYPE LVC_S_LAYO.
+    DATA : LT_FIELDCAT TYPE LVC_T_FCAT WITH HEADER LINE.
+
+    LS_LAYOUT-ZEBRA = 'X'.
+    LS_LAYOUT-SEL_MODE = 'A'.
+
+    CLEAR LT_FIELDCAT.
+    LT_FIELDCAT-FIELDNAME = 'BNAME'.
+    LT_FIELDCAT-REF_TABLE = 'V_USERNAME'.
+    LT_FIELDCAT-REF_FIELD = 'BNAME'.
+    LT_FIELDCAT-KEY       = 'X'.
+    LT_FIELDCAT-COL_OPT   = 'A'.
+
+    APPEND LT_FIELDCAT.
+
+    CLEAR LT_FIELDCAT.
+    LT_FIELDCAT-FIELDNAME = 'NAME_LAST'.
+    LT_FIELDCAT-REF_TABLE = 'V_USERNAME'.
+    LT_FIELDCAT-REF_FIELD = 'NAME_LAST'.
+    LT_FIELDCAT-COL_OPT   = 'A'.
+    APPEND LT_FIELDCAT.
+
+
+
+    CALL METHOD GO_ALV->SET_TABLE_FOR_FIRST_DISPLAY
+      EXPORTING
+        IS_LAYOUT                     = LS_LAYOUT
+      CHANGING
+        IT_OUTTAB                     = GT_DATA[]
+        IT_FIELDCATALOG               = LT_FIELDCAT[]
+      EXCEPTIONS
+        INVALID_PARAMETER_COMBINATION = 1
+        PROGRAM_ERROR                 = 2
+        TOO_MANY_LINES                = 3
+        OTHERS                        = 4.
+    IF SY-SUBRC <> 0.
+*     Implement suitable error handling here
+    ENDIF.
+
+
+  ENDIF.
+
+
+ENDMODULE.
+
+*GUI Texts
+*----------------------------------------------------------
+* 0100 --> ALV Template
+
+----------------------------------------------------------------------------------
+Extracted by Mass Download version 1.5.5 - E.G.Mellodew. 1998-2023. Sap Release 752

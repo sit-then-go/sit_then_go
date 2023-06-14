@@ -1,0 +1,69 @@
+*&---------------------------------------------------------------------*
+*& Report ZDEFINED
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZDEFINED.
+
+DATA : LV_CHAR      TYPE C LENGTH 10,
+       LV_CHAR2(10) TYPE C,
+       LV_CHAR3(10),
+       LV_CHAR4     TYPE CHAR10.
+
+
+DATA : LV_NUMC      TYPE N LENGTH 10,
+       LV_NUMC2(10) TYPE N,
+       LV_NUMC3     TYPE NUMC10.
+
+
+DATA : LV_INT  TYPE INT1, "
+       IV_INT2 TYPE INT2,
+       IV_INT4 TYPE INT4,
+       IV_INT5 TYPE I.
+
+DATA : LV_X      TYPE X,
+       LV_X2     TYPE X LENGTH 10,
+       LV_X3(10) TYPE X.
+
+DATA : LV_DATE TYPE D, "sy-datum
+       LV_TIME TYPE T. "sy-uzeit
+
+
+DATA : LV_P      TYPE P DECIMALS 3,
+       LV_P2(10) TYPE P DECIMALS 3,
+       LV_P3(2)  TYPE P.
+
+
+DATA : LS_USR02  TYPE USR02,
+       LT_USER02 TYPE TABLE OF USR02.
+
+DATA : LO_ALV TYPE REF TO CL_GUI_ALV_GRID.
+
+
+* types, data, type, like
+
+TYPES : TY_USR02 TYPE USR02.
+TYPES : BEGIN OF TY_MARA,
+          MATNR TYPE MATNR,
+          MAKTX TYPE MAKTX,
+        END OF TY_MARA,
+        TTY_MARA TYPE TABLE OF TY_MARA.
+
+DATA : LT_MARA  TYPE TTY_MARA,
+       LT_MARA2 TYPE TABLE OF TY_MARA.
+
+DATA : LT_MARA3 LIKE TABLE OF LT_MARA.
+DATA : LT_MARA4 LIKE TABLE OF USR02.
+
+DATA : LS_MARA5 LIKE LINE OF LT_MARA4.
+
+*TYPES: BEGIN OF TY_MARA2,
+*         T_MARA TYPE TTY_MARA,
+*       END OF TY_MARA2.
+
+DATA : BEGIN OF LT_MARA6,
+         T_MARA TYPE TTY_MARA,
+       END OF LT_MARA6.
+
+----------------------------------------------------------------------------------
+Extracted by Mass Download version 1.5.5 - E.G.Mellodew. 1998-2023. Sap Release 752

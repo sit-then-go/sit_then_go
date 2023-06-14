@@ -1,0 +1,20 @@
+*&---------------------------------------------------------------------*
+*& Include          ZINPUT_TOP
+*&---------------------------------------------------------------------*
+
+DATA : GV_OK_CODE TYPE SY-UCOMM.
+
+DATA : BEGIN OF GT_DATA OCCURS 0,
+         MATNR     LIKE ZMARA-MATNR,
+         MAKTX(40),
+         MEINS     LIKE ZMARA-MEINS,
+         ERDAT     LIKE ZMARA-ERDAT,
+         ERZET     LIKE ZMARA-ERZET,
+         ERNAM     LIKE ZMARA-ERNAM,
+         AEDAT     LIKE ZMARA-AEDAT,
+         AEZET     LIKE ZMARA-AEZET,
+         AENAM     LIKE ZMARA-AENAM,
+       END OF GT_DATA.
+
+----------------------------------------------------------------------------------
+Extracted by Mass Download version 1.5.5 - E.G.Mellodew. 1998-2023. Sap Release 752

@@ -1,0 +1,240 @@
+*&---------------------------------------------------------------------*
+*& Include          ZINPUT_F01
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Form CREATE_ALV
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM CREATE_ALV .
+
+  DATA : LO_DOKCING TYPE REF TO CL_GUI_DOCKING_CONTAINER.
+
+*&---------------------------------------------------------------------*
+* 1. contaienr ###
+*&---------------------------------------------------------------------*
+
+* container
+* custom container
+* docking container
+  CREATE OBJECT LO_DOKCING
+    EXPORTING
+      REPID                       = SY-REPID
+      DYNNR                       = SY-DYNNR
+      SIDE                        = CL_GUI_DOCKING_CONTAINER=>DOCK_AT_LEFT
+      EXTENSION                   = 5000
+    EXCEPTIONS
+      CNTL_ERROR                  = 1
+      CNTL_SYSTEM_ERROR           = 2
+      CREATE_ERROR                = 3
+      LIFETIME_ERROR              = 4
+      LIFETIME_DYNPRO_DYNPRO_LINK = 5
+      OTHERS                      = 6.
+
+  IF SY-SUBRC <> 0.
+    MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+               WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+  ENDIF.
+
+
+*&---------------------------------------------------------------------*
+* 2. ALV ###
+*&---------------------------------------------------------------------*
+  CREATE OBJECT GO_ALV
+    EXPORTING
+      I_PARENT          = LO_DOKCING
+    EXCEPTIONS
+      ERROR_CNTL_CREATE = 1
+      ERROR_CNTL_INIT   = 2
+      ERROR_CNTL_LINK   = 3
+      ERROR_DP_CREATE   = 4
+      OTHERS            = 5.
+
+  IF SY-SUBRC <> 0.
+    MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+               WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+  ENDIF.
+
+*&---------------------------------------------------------------------*
+* 3. layout ###
+*&---------------------------------------------------------------------*
+  GO_ALV->GET_FRONTEND_LAYOUT( IMPORTING ES_LAYOUT = DATA(LS_LAYOUT) ).
+
+  LS_LAYOUT-ZEBRA = 'X'.
+  LS_LAYOUT-SEL_MODE = 'A'.
+
+*&---------------------------------------------------------------------*
+* 4. fieldcatalog
+*&---------------------------------------------------------------------*
+  GO_ALV->GET_FRONTEND_FIELDCATALOG( IMPORTING ET_FIELDCATALOG = DATA(LT_FIELDCAT) ).
+
+  DATA : LS_FIELDCAT TYPE LVC_S_FCAT.
+
+  CLEAR LS_FIELDCAT.
+  LS_FIELDCAT-FIELDNAME = 'MATNR'.
+  LS_FIELDCAT-REF_TABLE = 'ZMARA'.
+  LS_FIELDCAT-REF_FIELD = 'MATNR'.
+  LS_FIELDCAT-KEY       = 'X'.
+  LS_FIELDCAT-OUTPUTLEN = 40.
+  LS_FIELDCAT-EDIT      = 'X'.
+  APPEND LS_FIELDCAT TO LT_FIELDCAT.
+
+  CLEAR LS_FIELDCAT.
+  LS_FIELDCAT-FIELDNAME = 'MAKTX'.
+  LS_FIELDCAT-COLTEXT   = 'Material Text'.
+  LS_FIELDCAT-INTTYPE   = 'C'.
+  LS_FIELDCAT-INTLEN    = 40.
+  LS_FIELDCAT-KEY       = 'X'.
+  LS_FIELDCAT-OUTPUTLEN = 40.
+  LS_FIELDCAT-EDIT      = 'X'.
+  APPEND LS_FIELDCAT TO LT_FIELDCAT.
+
+
+  CLEAR LS_FIELDCAT.
+  LS_FIELDCAT-FIELDNAME = 'MEINS'.
+  LS_FIELDCAT-REF_TABLE = 'ZMARA'.
+  LS_FIELDCAT-REF_FIELD = 'MEINS'.
+  LS_FIELDCAT-OUTPUTLEN = 10.
+  LS_FIELDCAT-EDIT      = 'X'.
+  APPEND LS_FIELDCAT TO LT_FIELDCAT.
+
+
+
+
+
+
+  DATA : LT_EXCLUDE TYPE UI_FUNCTIONS.
+
+*&---------------------------------------------------------------------*
+* ALV EVENT ##
+*&---------------------------------------------------------------------*
+  GO_ALV->REGISTER_EDIT_EVENT( CL_GUI_ALV_GRID=>MC_EVT_MODIFIED ).
+
+  CREATE OBJECT GO_EVENT.
+
+  SET HANDLER GO_EVENT->HANDLE_DATA_CHANGED FOR GO_ALV.
+
+
+*MC_EVT_ENTER , ### ## #### #####. #
+*MC_EVT_MODIFIED
+
+
+
+*&---------------------------------------------------------------------*
+* alv# # ##
+*&---------------------------------------------------------------------*
+
+  CALL METHOD GO_ALV->SET_TABLE_FOR_FIRST_DISPLAY
+    EXPORTING
+      IS_LAYOUT                     = LS_LAYOUT
+      IT_TOOLBAR_EXCLUDING          = LT_EXCLUDE
+    CHANGING
+      IT_OUTTAB                     = GT_DATA[]
+      IT_FIELDCATALOG               = LT_FIELDCAT[]
+    EXCEPTIONS
+      INVALID_PARAMETER_COMBINATION = 1
+      PROGRAM_ERROR                 = 2
+      TOO_MANY_LINES                = 3
+      OTHERS                        = 4.
+  IF SY-SUBRC <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form GET_DATA
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM GET_DATA .
+
+  SELECT *
+    FROM ZMARA
+    INTO CORRESPONDING FIELDS OF TABLE GT_DATA
+   WHERE MATNR IN S_MATNR. "
+
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form SAVE_PROC
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM SAVE_PROC .
+
+  DATA : LV_ANS.
+
+  GO_ALV->CHECK_CHANGED_DATA( IMPORTING E_VALID = DATA(LV_VALID) ).
+
+  CHECK LV_VALID IS NOT INITIAL.
+
+  CALL FUNCTION 'POPUP_TO_CONFIRM'
+    EXPORTING
+      TITLEBAR              = '## # ##'
+      TEXT_QUESTION         = '## ######?'
+      TEXT_BUTTON_1         = 'Yes'
+      TEXT_BUTTON_2         = 'No'
+      DISPLAY_CANCEL_BUTTON = ' '
+    IMPORTING
+      ANSWER                = LV_ANS
+    EXCEPTIONS
+      TEXT_NOT_FOUND        = 1
+      OTHERS                = 2.
+
+  CHECK LV_ANS EQ '1'.
+
+  IF GT_DATA[] IS INITIAL.
+    MESSAGE '#### ####.' TYPE 'S' DISPLAY LIKE 'E'.
+    EXIT.
+  ENDIF.
+
+  DATA : LT_ZMARA TYPE TABLE OF ZMARA WITH HEADER LINE.
+  DATA : LV_ERROR.
+
+  LOOP AT GT_DATA.
+
+    IF GT_DATA-MATNR IS INITIAL.
+      LV_ERROR = 'X'.
+      MESSAGE 'Material ## ####' TYPE 'S' DISPLAY LIKE 'E'.
+      EXIT.
+    ENDIF.
+
+    CLEAR LT_ZMARA.
+    LT_ZMARA-MATNR = GT_DATA-MATNR.
+    LT_ZMARA-ERDAT = SY-DATUM.
+    LT_ZMARA-ERZET = SY-UZEIT.
+    LT_ZMARA-ERNAM = SY-UNAME.
+    APPEND LT_ZMARA.
+
+
+  ENDLOOP.
+
+  CHECK LV_ERROR IS INITIAL.
+
+
+  TRY .
+      MODIFY ZMARA FROM TABLE LT_ZMARA.
+    CATCH CX_SY_OPEN_SQL_DB INTO DATA(LO_EX).
+      MESSAGE LO_EX->GET_TEXT( ) TYPE 'S'.
+      ROLLBACK WORK.
+      EXIT.
+  ENDTRY.
+
+  COMMIT WORK.
+
+
+ENDFORM.
+
+----------------------------------------------------------------------------------
+Extracted by Mass Download version 1.5.5 - E.G.Mellodew. 1998-2023. Sap Release 752
